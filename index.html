@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Parth Library Tracker</title>
+  <style>
+    body { font-family: Arial; margin: 2rem; }
+    table, th, td { border: 1px solid black; border-collapse: collapse; }
+    th, td { padding: 8px; text-align: left; }
+    input, select { margin: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Parth Library - Student Tracker</h1>
+  <form id="studentForm">
+    <input type="text" id="name" placeholder="Name" required>
+    <input type="text" id="seat" placeholder="Seat Number" required>
+    <input type="text" id="phone" placeholder="Phone Number" required>
+    <input type="text" id="address" placeholder="Address" required>
+    <select id="attendance">
+      <option value="Present">Present</option>
+      <option value="Absent">Absent</option>
+    </select>
+    <select id="fee">
+      <option value="Paid">Paid</option>
+      <option value="Pending">Pending</option>
+    </select>
+    <button type="submit">Add Student</button>
+  </form>
+
+  <h2>Student List</h2>
+  <table id="studentTable">
+    <thead>
+      <tr>
+        <th>Name</th><th>Seat</th><th>Phone</th><th>Address</th><th>Attendance</th><th>Fee</th><th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const form = document.getElementById('studentForm');
+    const tableBody = document.querySelector('#studentTable tbody');
+
+    async function fetchStudents() {
+      const res = await fetch('http://localhost:3000/students');
+      const students = await res.json();
+      tableBody.innerHTML = '';
+      students.forEach((s, i) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${s.name}</td><td>${s.seat}</td><td>${s.phone}</td>
+          <td>${s.address}</td><td>${s.attendance}</td><td>${s.fee}</td>
+          <td><button onclick="deleteStudent(${i})">Delete</button></td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const student = {
+        name: form.name.value,
+        seat: form.seat.value,
+        phone: form.phone.value,
+        address: form.address.value,
+        attendance: form.attendance.value,
+        fee: form.fee.value
+      };
+      await fetch('http://localhost:3000/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(student)
+      });
+      form.reset();
+      fetchStudents();
+    });
+
+    async function deleteStudent(index) {
+      await fetch(`http://localhost:3000/students/${index}`, {
+        method: 'DELETE'
+      });
+      fetchStudents();
+    }
+
+    fetchStudents();
+  </script>
+</body>
+</html>
